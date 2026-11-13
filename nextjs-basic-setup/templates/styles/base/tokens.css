@@ -18,7 +18,8 @@
   --color-primary-hover: #2a2a4e;
   --color-accent: #c9a84c;
 
-  /* Typography — fonts injected by next/font as CSS variables on <body> */
+  /* Typography — fonts injected by next/font as CSS variables on <html>
+     (the layout puts `inter.variable` on the <html> element) */
   --font-body: var(--font-sans, system-ui, sans-serif);
   --font-heading: var(--font-sans, system-ui, sans-serif);
 

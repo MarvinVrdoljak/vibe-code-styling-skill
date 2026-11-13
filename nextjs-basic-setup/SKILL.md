@@ -1,5 +1,5 @@
 ---
-name: nextjs-app-setup
+name: nextjs-basic-setup
 description: >
   Scaffold and maintain a clean Next.js (App Router) project with the team's
   conventions: a strict 3-layer CSS architecture (design tokens + base reset +
@@ -202,7 +202,9 @@ are handled entirely via CSS Modules + tokens.
 ### Styling a new component — the everyday workflow
 This is the loop you'll run most often. Keep it tight:
 
-1. Create the folder `components/MyThing/` with `MyThing.tsx` + `MyThing.module.css`.
+1. Create `components/<domain>/<Prefix><Name>.tsx` with a co-located
+   `<Prefix><Name>.module.css` (e.g. `components/blocks/BlockHero.tsx` +
+   `BlockHero.module.css`) — domain folders stay flat, no folder per component.
 2. In the `.tsx`, give **every** styled element its own semantic class from
    `styles` (`.root`, `.title`, `.list`, `.item`, `.icon`) — no descendant
    selectors, no styling bare tags.

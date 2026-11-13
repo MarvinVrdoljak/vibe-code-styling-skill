@@ -6,7 +6,7 @@ self-contained: **no references to this repo, its structure, or the sibling
 skill** may appear inside the skill files. Meta rules like the ones in this
 file live only here at the root.
 
-- `nextjs-basic-setup/` — **extended** skill (`nextjs-app-setup`): full
+- `nextjs-basic-setup/` — **extended** skill (`nextjs-basic-setup`): full
   project setup incl. CSS architecture, components, i18n, TypeScript, plus
   `templates/`.
 - `css-styling/` — **styling-only** skill (`css-styling`): just the CSS

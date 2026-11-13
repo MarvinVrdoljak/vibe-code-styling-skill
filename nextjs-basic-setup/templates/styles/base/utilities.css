@@ -18,9 +18,11 @@
     padding-inline: var(--spacing-20);
   }
 
-  /* Disabled state */
-  .disabled,
-  *:disabled {
+  /* Disabled look for non-interactive elements. Interactive elements
+     (buttons, inputs) style their own :disabled in their module — a global
+     *:disabled would double-apply opacity and its pointer-events: none
+     would swallow cursor styles. */
+  .disabled {
     opacity: 0.5;
     pointer-events: none;
   }
