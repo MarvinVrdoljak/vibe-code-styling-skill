@@ -1,10 +1,10 @@
 import NextImage, {type ImageProps} from 'next/image'
 
 // Thin wrapper around next/image so image handling stays consistent app-wide.
-// `alt` is required (accessibility) — pass an empty string only for purely
-// decorative images.
-type CommonImageProps = ImageProps & {alt: string}
+// `alt` is already required by ImageProps — pass an empty string only for
+// purely decorative images.
+export type CommonImageProps = ImageProps
 
-export function CommonImage({alt, ...props}: CommonImageProps) {
-  return <NextImage alt={alt} {...props} />
+export function CommonImage(props: CommonImageProps) {
+  return <NextImage {...props} />
 }

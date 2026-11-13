@@ -32,9 +32,15 @@
   }
 
   img {
-    width: 100%;
     max-width: 100%;
     height: auto;
+  }
+
+  /* Keyboard focus — visible on every interactive element. Never remove
+     this without providing an equally visible replacement. */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
   }
 
   h1,
@@ -96,13 +102,10 @@
     margin: 0;
   }
 
-  /* details / accordion reset */
-  details {
-    outline: none;
-  }
+  /* details / accordion reset — hides the default marker only; keyboard
+     focus stays visible via the global :focus-visible rule above. */
   details > summary {
     list-style: none;
-    outline: none;
   }
   details > summary::marker,
   details > summary::-webkit-details-marker {

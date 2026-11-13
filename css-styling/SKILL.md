@@ -69,6 +69,10 @@ Minimal reset + base element typography (body, headings, links, button reset),
 all inside `@layer base`. NEVER override base element styles from a component
 module — fix them here.
 
+The base layer also provides a global `:focus-visible` outline for keyboard
+users. NEVER write `outline: none` in a module unless you provide an equally
+visible focus style in its place.
+
 ### Layer 3 — Components (CSS Modules)
 Every component has a co-located `.module.css`. Class names are short, local,
 and semantic — **no BEM**, **no global selectors**, **no nested descendant

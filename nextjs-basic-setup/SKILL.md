@@ -73,7 +73,11 @@ Act on these first; the sections below are the detail.
             postcss-pxtorem @csstools/postcss-global-data \
             stylelint stylelint-config-standard prettier
    ```
-3. Copy the template tree from `templates/` into the project:
+3. Delete the create-next-app boilerplate the templates replace:
+   `app/layout.tsx`, `app/page.tsx`, `app/page.module.css`, `app/globals.css`
+   (the real root layout lives in `app/[locale]/`), and the demo SVGs in
+   `public/`. Keep `app/favicon.ico`.
+4. Copy the template tree from `templates/` into the project:
    - `styles/` (the whole 3-layer tree) ← the part that matters most
    - `postcss.config.cjs`
    - `i18n/` (`routing.ts`, `request.ts`, `navigation.ts`, `messages/`)
@@ -84,8 +88,8 @@ Act on these first; the sections below are the detail.
      to anchor the pattern
    - `next.config.ts` (wires the next-intl plugin)
    - `.stylelintrc.cjs` + `.prettierrc`
-4. Confirm `tsconfig.json` has `"strict": true` and `"paths": { "@/*": ["./*"] }`.
-5. Add scripts to `package.json`:
+5. Confirm `tsconfig.json` has `"strict": true` and `"paths": { "@/*": ["./*"] }`.
+6. Add scripts to `package.json`:
    `"lint:css": "stylelint \"**/*.css\""`, `"typecheck": "tsc --noEmit"`.
 
 ---
@@ -122,6 +126,10 @@ typography. Defined as CSS custom properties on `:root`.
 Minimal reset + base element typography (body, headings, links, button reset),
 all inside `@layer base`. NEVER override base element styles from a component
 module — fix them here.
+
+The base layer also provides a global `:focus-visible` outline for keyboard
+users. NEVER write `outline: none` in a module unless you provide an equally
+visible focus style in its place.
 
 ### Layer 3 — Components (CSS Modules)
 Every component has a co-located `.module.css`. Class names are short, local,

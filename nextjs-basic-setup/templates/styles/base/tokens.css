@@ -23,7 +23,10 @@
   --font-body: var(--font-sans, system-ui, sans-serif);
   --font-heading: var(--font-sans, system-ui, sans-serif);
 
-  /* Fluid typography: clamp(min, preferred, max) — auto-scales across viewports */
+  /* Fluid typography: clamp(min, preferred, max) — auto-scales across viewports.
+     The rem in the preferred value is intentional (keeps the fluid part tied
+     to the user's font size) and is the ONE allowed exception to "never write
+     rem" — stylelint permits it in this file only. */
   --font-size-base: clamp(14px, 0.875rem + 0.25vw, 18px);
   --font-size-sm: clamp(12px, 0.75rem + 0.2vw, 14px);
   --font-size-lg: clamp(18px, 1.125rem + 0.5vw, 24px);
