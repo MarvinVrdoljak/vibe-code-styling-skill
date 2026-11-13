@@ -27,8 +27,8 @@ whenever you touch CSS or style a component.
 - **Inherit, don't redeclare**: `font-size`, `font-weight`, `line-height` etc.
   come from the base layer — only write them in a module when the component
   genuinely deviates from the global style.
-- Every component has a **co-located `.module.css`** whose filename mirrors the
-  component (`CommonButton.tsx` → `CommonButton.module.css`).
+- Every styled component has a **co-located `.module.css`** whose filename
+  mirrors the component (`CommonButton.tsx` → `CommonButton.module.css`).
 - **Breakpoints via `@custom-media` tokens** (`--bp-*`), nested inside the
   selector, mobile-first.
 - **`stylelint` is the source of truth** for the CSS rules — run it, don't
@@ -41,7 +41,9 @@ whenever you touch CSS or style a component.
 > **PostCSS contract:** all CSS is processed through PostCSS. Write **`px`**
 > everywhere — `postcss-pxtorem` converts to `rem` at build time. **Never write
 > `rem` by hand**; it won't be converted and breaks the scaling contract.
-> (`html`/`body` are blacklisted so root font-size stays in px.)
+> (`html`/`body` are blacklisted so root font-size stays in px.) Browser targets
+> come from `.browserslistrc` (Next.js defaults) — without it `postcss-preset-env`
+> assumes old browsers and bloats the output with fallbacks.
 
 The cascade is controlled with a single declared layer order at the top of
 `globals.css`:
@@ -74,15 +76,19 @@ users. NEVER write `outline: none` in a module unless you provide an equally
 visible focus style in its place.
 
 ### Layer 3 — Components (CSS Modules)
-Every component has a co-located `.module.css`. Class names are short, local,
-and semantic — **no BEM**, **no global selectors**, **no nested descendant
-selectors** (`.root li`, `.root > a`):
+Every component that has styles gets a co-located `.module.css`. Class names
+are short, local, and semantic — **no BEM**, **no global selectors**, **no
+descendant/child selectors** (`.root li`, `.root > a`), **no bare tag
+selectors** (stylelint enforces all of these in `*.module.css`):
 
 - Give every element its own class: `.root`, `.item`, `.link`, `.icon`, `.label`.
 - JSX assigns each class explicitly:
   `<a className={styles.link}><Icon className={styles.icon} /></a>`.
 - Inline `style={{}}` is allowed **only** for truly runtime-dynamic values
   (e.g. a computed width). Never for static design values.
+- Module classes are **unlayered**, so they always win over everything in
+  `@layer base/components/utilities`. That's what lets a module override a
+  global atom or utility without specificity hacks.
 
 ### Inherit, don't redeclare
 The base layer (`base.css` + tokens) already styles typography for body text,
@@ -109,7 +115,7 @@ the declaration is pure noise.
 
 Rule: appears in >1 place → `@layer utilities`. Used exactly once → that
 page/component module. Global utilities and module classes combine freely in
-JSX: `className={\`${styles.layout} grid\`}`.
+JSX: `className={\`${styles.root} grid\`}`.
 
 Keep global utilities **minimal** — only genuinely structural, app-wide
 patterns (the centered `.grid` container, the `.layout` shell). Resist adding
@@ -141,9 +147,11 @@ CSS Level 5 `@custom-media`, made available to all files via
 - `globals.css` is imported **once**, in the root `app/[locale]/layout.tsx`:
   `import '@/styles/globals.css'`.
 - Component styles are imported per file: `import styles from './CommonButton.module.css'`.
-- Global atom styles that aren't tied to one React component
-  (e.g. a `.button` used in rich text / markup) live in
-  `styles/components/*.css` and are aggregated by `styles/components/index.css`.
+- Global atom styles that must also work outside React (e.g. a `.button`
+  used in rich text / markup) live in `styles/components/*.css` and are
+  aggregated by `styles/components/index.css`. The matching React component
+  composes that class (`className={\`button ${styles.ghost}\`}`) and keeps only
+  its variants in its module — one source for the base look, never two.
 
 ### No Tailwind
 No Tailwind classes in any JSX/TSX, no `tailwind.config.js`. Layout and spacing
@@ -170,7 +178,7 @@ Want a one-off custom look for a single instance? Compose classes in JSX —
 
 ### Pre-submit CSS checklist
 - [ ] All color/spacing/radius values use `var(--…)` tokens
-- [ ] Every component has a `.module.css`; classes are short, local, no BEM
+- [ ] Every styled component has a `.module.css`; classes are short, local, no BEM
 - [ ] No nested descendant selectors inside modules
 - [ ] No hardcoded values outside `tokens.css`
 - [ ] No hand-written `rem` (write `px`)

@@ -1,0 +1,9 @@
+# Next.js 16 default targets + iOS Safari. Read by postcss-preset-env AND by
+# Next's CSS minifier, so polyfills/prefixes are only added where needed.
+# Without this file preset-env assumes old browsers and bloats the CSS
+# (custom-property fallbacks, logical → physical properties, breaking RTL).
+chrome 111
+edge 111
+firefox 111
+safari 16.4
+ios_saf 16.4

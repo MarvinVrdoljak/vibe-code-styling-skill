@@ -45,8 +45,9 @@ Act on these first; the sections below are the detail.
 - **Reuse before you build**: check `components/` for an existing component
   first; if none exists, **ask** before creating one. The domain folder
   structure is fixed — never change it without an explicit request.
-- **Components live at** `components/<domain>/<Prefix><Name>.tsx` with a matching
-  `<Prefix><Name>.module.css` (`blocks/BlockForm.tsx`, `common/CommonButton.tsx`).
+- **Components live at** `components/<domain>/<Prefix><Name>.tsx`, with a
+  matching `<Prefix><Name>.module.css` when they have styles
+  (`blocks/BlockForm.tsx`, `common/CommonButton.tsx`).
 - **Keep components focused** (~150 lines = look for a split) but **don't
   over-fragment**; when the right granularity is unclear, **ask the user**.
 - **Use semantic HTML + basic a11y**: correct element, heading order, `alt`,
@@ -55,17 +56,22 @@ Act on these first; the sections below are the detail.
   (never `next/*`); keep `de`/`en` keys in sync; keys are type-checked.
 - **Default to Server Components**; add `'use client'` only at interactive leaves.
 - **Linters are the source of truth**: `stylelint` enforces the CSS rules and
-  `tsc` enforces the types — run them, don't fight them.
+  `npm run typecheck` enforces the types — run them, don't fight them.
 
 ---
 
 ## 0. Bootstrapping a new project
 
-1. Requires **Node ≥ 20.9** (Next 16 dropped Node 18). Then
-   `npx create-next-app@latest` → choose **App Router**, **TypeScript**,
-   **No Tailwind**, **`@/*` import alias**, **`src/` no** (this house style
-   keeps `app/`, `components/`, `styles/`, `i18n/` at the package root).
-   Turbopack is the default — keep it; don't opt back into webpack.
+1. Requires **Node ≥ 20.9** (Next 16 dropped Node 18). Then run
+   ```
+   npx create-next-app@latest <name> --ts --app --no-tailwind --no-src-dir \
+     --no-eslint --no-biome --import-alias "@/*"
+   ```
+   **Tailwind is ON by default in create-next-app — `--no-tailwind` is
+   mandatory.** No `src/`: this house style keeps `app/`, `components/`,
+   `styles/`, `i18n/` at the package root. Linter: none here (ESLint is an
+   optional enhancement, see §5). Turbopack is the default — keep it; don't opt
+   back into webpack. Keep the generated `AGENTS.md` (Next's own agent hints).
 2. Install dependencies:
    ```
    npm i next-intl
@@ -79,7 +85,7 @@ Act on these first; the sections below are the detail.
    `public/`. Keep `app/favicon.ico`.
 4. Copy the template tree from `templates/` into the project:
    - `styles/` (the whole 3-layer tree) ← the part that matters most
-   - `postcss.config.cjs`
+   - `postcss.config.cjs` + `.browserslistrc` (keeps the CSS output lean)
    - `i18n/` (`routing.ts`, `request.ts`, `navigation.ts`, `messages/`)
    - `global.d.ts` (type-safe i18n messages + locale)
    - `proxy.ts` (Next 16; on Next 15 name the same file `middleware.ts`)
@@ -90,7 +96,15 @@ Act on these first; the sections below are the detail.
    - `.stylelintrc.cjs` + `.prettierrc`
 5. Confirm `tsconfig.json` has `"strict": true` and `"paths": { "@/*": ["./*"] }`.
 6. Add scripts to `package.json`:
-   `"lint:css": "stylelint \"**/*.css\""`, `"typecheck": "tsc --noEmit"`.
+   ```json
+   "lint:css": "stylelint \"**/*.css\"",
+   "typecheck": "next typegen && tsc --noEmit",
+   "format": "prettier --write ."
+   ```
+   `next typegen` regenerates the route types in `.next/types` first — without
+   it `tsc` fails on stale types (e.g. right after deleting the boilerplate).
+7. Verify: `npm run typecheck`, `npm run lint:css`, and `npm run build` must
+   all pass before the first feature is written.
 
 ---
 
@@ -99,7 +113,9 @@ Act on these first; the sections below are the detail.
 > **PostCSS contract:** all CSS is processed through PostCSS. Write **`px`**
 > everywhere — `postcss-pxtorem` converts to `rem` at build time. **Never write
 > `rem` by hand**; it won't be converted and breaks the scaling contract.
-> (`html`/`body` are blacklisted so root font-size stays in px.)
+> (`html`/`body` are blacklisted so root font-size stays in px.) Browser targets
+> come from `.browserslistrc` (Next.js defaults) — without it `postcss-preset-env`
+> assumes old browsers and bloats the output with fallbacks.
 
 The cascade is controlled with a single declared layer order at the top of
 `globals.css`:
@@ -132,15 +148,19 @@ users. NEVER write `outline: none` in a module unless you provide an equally
 visible focus style in its place.
 
 ### Layer 3 — Components (CSS Modules)
-Every component has a co-located `.module.css`. Class names are short, local,
-and semantic — **no BEM**, **no global selectors**, **no nested descendant
-selectors** (`.root li`, `.root > a`):
+Every component that has styles gets a co-located `.module.css`. Class names
+are short, local, and semantic — **no BEM**, **no global selectors**, **no
+descendant/child selectors** (`.root li`, `.root > a`), **no bare tag
+selectors** (stylelint enforces all of these in `*.module.css`):
 
 - Give every element its own class: `.root`, `.item`, `.link`, `.icon`, `.label`.
 - JSX assigns each class explicitly:
   `<a className={styles.link}><Icon className={styles.icon} /></a>`.
 - Inline `style={{}}` is allowed **only** for truly runtime-dynamic values
   (e.g. a computed width). Never for static design values.
+- Module classes are **unlayered**, so they always win over everything in
+  `@layer base/components/utilities`. That's what lets a module override a
+  global atom or utility without specificity hacks.
 
 ### Inherit, don't redeclare
 The base layer (`base.css` + tokens) already styles typography for body text,
@@ -167,7 +187,7 @@ the declaration is pure noise.
 
 Rule: appears in >1 place → `@layer utilities`. Used exactly once → that
 page/component module. Global utilities and module classes combine freely in
-JSX: `className={\`${styles.layout} grid\`}`.
+JSX: `className={\`${styles.root} grid\`}`.
 
 Keep global utilities **minimal** — only genuinely structural, app-wide
 patterns (the centered `.grid` container, the `.layout` shell). Resist adding
@@ -199,9 +219,11 @@ CSS Level 5 `@custom-media`, made available to all files via
 - `globals.css` is imported **once**, in the root `app/[locale]/layout.tsx`:
   `import '@/styles/globals.css'`.
 - Component styles are imported per file: `import styles from './CommonButton.module.css'`.
-- Global atom styles that aren't tied to one React component
-  (e.g. a `.button` used in rich text / markup) live in
-  `styles/components/*.css` and are aggregated by `styles/components/index.css`.
+- Global atom styles that must also work outside React (e.g. a `.button`
+  used in rich text / markup) live in `styles/components/*.css` and are
+  aggregated by `styles/components/index.css`. The matching React component
+  composes that class (`className={\`button ${styles.ghost}\`}`) and keeps only
+  its variants in its module — one source for the base look, never two.
 
 ### No Tailwind
 No Tailwind classes in any JSX/TSX, no `tailwind.config.js`. Layout and spacing
@@ -228,7 +250,7 @@ Want a one-off custom look for a single instance? Compose classes in JSX —
 
 ### Pre-submit CSS checklist
 - [ ] All color/spacing/radius values use `var(--…)` tokens
-- [ ] Every component has a `.module.css`; classes are short, local, no BEM
+- [ ] Every styled component has a `.module.css`; classes are short, local, no BEM
 - [ ] No nested descendant selectors inside modules
 - [ ] No hardcoded values outside `tokens.css`
 - [ ] No hand-written `rem` (write `px`)
@@ -350,14 +372,14 @@ than silently over- or under-splitting.
 ### Component "definition of done"
 - [ ] Checked for an existing component first — no duplicate/near-duplicate
       created; new atoms only after asking the user
-- [ ] File is `components/<domain>/<Prefix><Name>.tsx` with matching `.module.css`
-      in one of the **fixed** domain folders (no new folders invented)
+- [ ] File is `components/<domain>/<Prefix><Name>.tsx` (+ matching `.module.css`
+      if styled) in one of the **fixed** domain folders (no new folders invented)
 - [ ] Fully typed — explicit `Props` interface, no `any`
 - [ ] Single responsibility; not over-large and not needlessly fragmented
 - [ ] Server Component unless it genuinely needs the client
 - [ ] Semantic HTML + `alt`/labels where applicable
 - [ ] Every styled element has its own module class (no descendant selectors)
-- [ ] `tsc --noEmit` and `stylelint` pass
+- [ ] `npm run typecheck` and `npm run lint:css` pass
 
 ---
 
@@ -386,6 +408,10 @@ Wiring:
 - `app/[locale]/layout.tsx` validates the locale, calls `setRequestLocale(locale)`
   (enables static rendering) and wraps children in `<NextIntlClientProvider>`.
 - `generateStaticParams` returns every locale so locale routes are pre-rendered.
+- Every **page** under `[locale]` also calls `setRequestLocale(locale as Locale)`
+  (import `Locale` from `next-intl`). The cast is safe because the layout
+  already rejected unknown locales — without it the build fails the typecheck,
+  since `params.locale` is typed `string`.
 
 Using translations:
 - **Server Components:** `const t = await getTranslations('home')` → `t('title')`.
@@ -418,7 +444,8 @@ care as the runtime code.
   from a single source (e.g. message keys come from `en.json` via `global.d.ts`).
 - **Type at the boundary**: API/JSON responses, params, and search params get a
   type at the edge so the rest of the code is sound.
-- Run **`tsc --noEmit`** as part of "done" — a green typecheck is non-negotiable.
+- Run **`npm run typecheck`** (`next typegen && tsc --noEmit`) as part of
+  "done" — a green typecheck is non-negotiable.
 
 ---
 
