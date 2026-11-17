@@ -9,7 +9,13 @@
     box-sizing: border-box;
   }
 
-  html,
+  /* Never set font-size on html: the root stays at the browser default
+     (16px × user preference), so 1rem = 16px and pxtorem output is exact.
+     A fluid size here would scale every rem — and body's clamp — twice. */
+  html {
+    text-size-adjust: 100%;
+  }
+
   body {
     font-family: var(--font-body);
     font-size: var(--font-size-base);
@@ -17,7 +23,6 @@
     line-height: var(--line-height-base);
     color: var(--color-text);
     background: var(--color-background);
-    text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
     margin: 0;
   }

@@ -9,7 +9,11 @@ module.exports = {
     'postcss-pxtorem': {
       rootValue: 16,
       propList: ['*'],
-      selectorBlackList: ['html', 'body'],
+      // Values below 2px (hairline borders) stay px so they never render as
+      // sub-pixel rem values. No selectorBlackList: the root font-size is
+      // never set (see base.css), and pxtorem's string blacklist would match
+      // substrings like `.bodyText` anyway.
+      minPixelValue: 2,
     },
   },
 }

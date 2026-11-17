@@ -4,7 +4,7 @@
   background: transparent;
   color: var(--color-primary);
 
-  &:hover {
+  &:hover:not(:disabled, [aria-disabled='true']) {
     background: var(--color-surface);
   }
 }

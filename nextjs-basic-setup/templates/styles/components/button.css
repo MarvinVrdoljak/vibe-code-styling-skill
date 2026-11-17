@@ -19,13 +19,13 @@
     transition: background 0.15s ease;
   }
 
-  .button:hover {
-    background: var(--color-primary-hover);
-  }
-
   .button:disabled,
   .button[aria-disabled='true'] {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .button:hover:not(:disabled, [aria-disabled='true']) {
+    background: var(--color-primary-hover);
   }
 }

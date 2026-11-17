@@ -41,7 +41,9 @@ whenever you touch CSS or style a component.
 > **PostCSS contract:** all CSS is processed through PostCSS. Write **`px`**
 > everywhere — `postcss-pxtorem` converts to `rem` at build time. **Never write
 > `rem` by hand**; it won't be converted and breaks the scaling contract.
-> (`html`/`body` are blacklisted so root font-size stays in px.) Browser targets
+> Values below 2px (hairline borders) intentionally stay px. **Never set
+> `font-size` on `html`** — the root stays at the browser default so
+> 1rem = 16px; fluid body text is set on `body` only. Browser targets
 > come from `.browserslistrc` (Next.js defaults) — without it `postcss-preset-env`
 > assumes old browsers and bloats the output with fallbacks.
 
